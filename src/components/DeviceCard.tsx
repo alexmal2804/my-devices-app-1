@@ -1,36 +1,32 @@
 import React from 'react';
 import { Card, CardContent, Typography } from '@mui/material';
+import { Device } from '../types';
 
 interface DeviceCardProps {
-    nomenclature: string;
-    model: string;
-    serialNumber: string;
-    dateOfReceipt: string;
-    status: string;
-    ctc: string;
+    device: Device;
 }
 
-const DeviceCard: React.FC<DeviceCardProps> = ({ nomenclature, model, serialNumber, dateOfReceipt, status, ctc }) => {
+const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
     return (
         <Card variant="outlined" style={{ margin: '16px' }}>
             <CardContent>
                 <Typography variant="h5" component="div">
-                    {nomenclature}
+                    {device.nomenclature}
                 </Typography>
                 <Typography color="text.secondary">
-                    Model: {model}
+                    Модель: {device.model}
                 </Typography>
                 <Typography color="text.secondary">
-                    Serial Number: {serialNumber}
+                    Серийный номер: {device.serialNumber}
                 </Typography>
                 <Typography color="text.secondary">
-                    Date of Receipt: {dateOfReceipt}
+                    Дата поступления: {device.dateOfReceipt}
                 </Typography>
                 <Typography color="text.secondary">
-                    Status: {status}
+                    Статус: {device.status}
                 </Typography>
                 <Typography color="text.secondary">
-                    CTC: {ctc}
+                    КТС: {device.ctc}
                 </Typography>
             </CardContent>
         </Card>

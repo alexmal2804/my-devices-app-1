@@ -1,13 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { db } from '../firebase/config'; // Assuming you have a Firebase setup in config.ts
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/firebaseConfig';
 import { Device } from '../types'; // Importing the Device type
 
 // Async thunk to fetch devices from Firebase
 export const fetchDevices = createAsyncThunk('devices/fetchDevices', async (employeeId: string) => {
-    const devicesRef = db.collection('devices'); // Adjust the collection name as per your Firestore structure
-    const snapshot = await devicesRef.where('employeeId', '==', employeeId).get();
+    const q = query(collection(db, 'devices'), where('empID', '==', employeeId));
+    const snapshot = await getDocs(q);
     const devices: Device[] = [];
-    snapshot.forEach(doc => {
+    snapshot.forEach((doc: any) => {
         devices.push({ id: doc.id, ...doc.data() } as Device);
     });
     return devices;

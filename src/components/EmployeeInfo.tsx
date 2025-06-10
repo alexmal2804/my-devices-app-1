@@ -1,23 +1,23 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../app/store';
 import { Card, CardContent, Typography } from '@mui/material';
+import { Employee } from '../types';
 
-const EmployeeInfo: React.FC = () => {
-    const employee = useSelector((state: RootState) => state.auth.employee);
+interface EmployeeInfoProps {
+    employee: Employee;
+}
 
+const EmployeeInfo: React.FC<EmployeeInfoProps> = ({ employee }) => {
     if (!employee) {
-        return <Typography>No employee information available.</Typography>;
+        return <Typography>Нет информации о сотруднике.</Typography>;
     }
-
     return (
         <Card variant="outlined">
             <CardContent>
                 <Typography variant="h5" component="div">
-                    Employee Information
+                    Информация о сотруднике
                 </Typography>
                 <Typography variant="body2">
-                    <strong>TN:</strong> {employee.tn}
+                    <strong>Табельный номер:</strong> {employee.tn}
                 </Typography>
                 <Typography variant="body2">
                     <strong>Division:</strong> {employee.division}
@@ -29,7 +29,7 @@ const EmployeeInfo: React.FC = () => {
                     <strong>FIO:</strong> {employee.fio}
                 </Typography>
                 <Typography variant="body2">
-                    <strong>Location:</strong> {employee.location}
+                    <strong>Размещение:</strong> {employee.location}
                 </Typography>
             </CardContent>
         </Card>

@@ -2,23 +2,32 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { fetchEmployeeData } from '../features/authSlice';
 import { fetchDevices } from '../features/devicesSlice';
+import { Employee, Device } from '../types';
 import { TextField, Button, Card, CardContent, Typography } from '@mui/material';
 
 const DeviceForm = () => {
     const [employeeId, setEmployeeId] = useState('');
     const dispatch = useDispatch();
-    const [employeeInfo, setEmployeeInfo] = useState(null);
-    const [devices, setDevices] = useState([]);
+    const [employeeInfo, setEmployeeInfo] = useState<Employee | null>(null);
+    const [devices, setDevices] = useState<Device[]>([]);
 
-    const handleLogin = async (e) => {
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Fetch employee data from Firebase
-        const employeeData = await dispatch(fetchEmployeeData(employeeId));
-        setEmployeeInfo(employeeData);
-        
-        // Fetch associated devices
-        const deviceData = await dispatch(fetchDevices(employeeId));
-        setDevices(deviceData);
+        // Получаем данные сотрудника
+        const result: any = await dispatch<any>(fetchEmployeeData(employeeId));
+        if (result.payload) {
+            setEmployeeInfo(result.payload);
+            // Получаем устройства
+            const devicesResult: any = await dispatch<any>(fetchDevices(result.payload.id));
+            if (devicesResult.payload) {
+                setDevices(devicesResult.payload);
+            } else {
+                setDevices([]);
+            }
+        } else {
+            setEmployeeInfo(null);
+            setDevices([]);
+        }
     };
 
     return (
@@ -38,27 +47,27 @@ const DeviceForm = () => {
             {employeeInfo && (
                 <Card>
                     <CardContent>
-                        <Typography variant="h5">Employee Information</Typography>
-                        <Typography>TN: {employeeInfo.TN}</Typography>
+                        <Typography variant="h5">Информация о сотруднике</Typography>
+                        <Typography>Табельный номер: {employeeInfo.tn}</Typography>
                         <Typography>Division: {employeeInfo.division}</Typography>
                         <Typography>Position: {employeeInfo.position}</Typography>
-                        <Typography>FIO: {employeeInfo.FIO}</Typography>
-                        <Typography>Location: {employeeInfo.location}</Typography>
+                        <Typography>FIO: {employeeInfo.fio}</Typography>
+                        <Typography>Размещение: {employeeInfo.location}</Typography>
                     </CardContent>
                 </Card>
             )}
             {devices.length > 0 && (
                 <div>
-                    <Typography variant="h5">Associated Devices</Typography>
+                    <Typography variant="h5">Прикреплённые устройства</Typography>
                     {devices.map((device) => (
                         <Card key={device.serialNumber}>
                             <CardContent>
-                                <Typography>Nomenclature: {device.nomenclature}</Typography>
-                                <Typography>Model: {device.model}</Typography>
-                                <Typography>Serial Number: {device.serialNumber}</Typography>
-                                <Typography>Date of Receipt: {device.dateOfReceipt}</Typography>
-                                <Typography>Status: {device.status}</Typography>
-                                <Typography>CTC: {device.CTC}</Typography>
+                                <Typography>Тип устройства: {device.nomenclature}</Typography>
+                                <Typography>Модель: {device.model}</Typography>
+                                <Typography>Серийный номер: {device.serialNumber}</Typography>
+                                <Typography>Дата поступления: {device.dateOfReceipt}</Typography>
+                                <Typography>Статус: {device.status}</Typography>
+                                <Typography>КТС: {device.ctc}</Typography>
                             </CardContent>
                         </Card>
                     ))}

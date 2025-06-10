@@ -2,14 +2,15 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDevices } from '../features/devicesSlice';
 import { selectEmployee } from '../features/authSlice';
+import { Employee, Device } from '../types';
 import EmployeeInfo from '../components/EmployeeInfo';
 import DeviceCard from '../components/DeviceCard';
 import { Grid, Typography } from '@mui/material';
 
 const Dashboard = () => {
     const dispatch = useDispatch();
-    const employee = useSelector(selectEmployee);
-    const devices = useSelector((state) => state.devices.items);
+    const employee = useSelector(selectEmployee) as Employee | null;
+    const devices = useSelector((state: any) => state.devices.devices) as Device[];
 
     useEffect(() => {
         if (employee) {

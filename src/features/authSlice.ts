@@ -1,4 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/firebaseConfig';
 
 interface Employee {
   id: string;
@@ -18,6 +20,19 @@ const initialState: AuthState = {
   employee: null,
   isLoggedIn: false,
 };
+
+export const fetchEmployeeData = createAsyncThunk(
+  'auth/fetchEmployeeData',
+  async (tn: string) => {
+    const q = query(collection(db, 'employees'), where('tn', '==', tn));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() } as Employee;
+  }
+);
+
+export const selectEmployee = (state: { auth: AuthState }) => state.auth.employee;
 
 const authSlice = createSlice({
   name: 'auth',
