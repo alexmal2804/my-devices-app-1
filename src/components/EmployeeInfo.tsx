@@ -20,13 +20,13 @@ const EmployeeInfo: React.FC<EmployeeInfoProps> = ({ employee }) => {
                     <strong>Табельный номер:</strong> {employee.tn}
                 </Typography>
                 <Typography variant="body2">
-                    <strong>Division:</strong> {employee.division}
+                    <strong>Подразделение:</strong> {employee.division}
                 </Typography>
                 <Typography variant="body2">
-                    <strong>Position:</strong> {employee.position}
+                    <strong>Должность:</strong> {employee.position}
                 </Typography>
                 <Typography variant="body2">
-                    <strong>FIO:</strong> {employee.fio}
+                    <strong>ФИО:</strong> {employee.fio}
                 </Typography>
                 <Typography variant="body2">
                     <strong>Размещение:</strong> {employee.location}

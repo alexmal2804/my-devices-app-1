@@ -21,7 +21,7 @@ const Dashboard = () => {
     return (
         <div>
             <Typography variant="h4" gutterBottom>
-                Dashboard
+                Прикреплённое оборудование сотрудника
             </Typography>
             {employee && <EmployeeInfo employee={employee} />}
             <Grid container spacing={2}>

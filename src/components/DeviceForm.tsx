@@ -34,14 +34,14 @@ const DeviceForm = () => {
         <div>
             <form onSubmit={handleLogin}>
                 <TextField
-                    label="Employee ID"
+                    label="Табельный номер"
                     variant="outlined"
                     value={employeeId}
                     onChange={(e) => setEmployeeId(e.target.value)}
                     required
                 />
                 <Button type="submit" variant="contained" color="primary">
-                    Login
+                    Войти
                 </Button>
             </form>
             {employeeInfo && (
@@ -49,16 +49,16 @@ const DeviceForm = () => {
                     <CardContent>
                         <Typography variant="h5">Информация о сотруднике</Typography>
                         <Typography>Табельный номер: {employeeInfo.tn}</Typography>
-                        <Typography>Division: {employeeInfo.division}</Typography>
-                        <Typography>Position: {employeeInfo.position}</Typography>
-                        <Typography>FIO: {employeeInfo.fio}</Typography>
+                        <Typography>Подразделение: {employeeInfo.division}</Typography>
+                        <Typography>Должность: {employeeInfo.position}</Typography>
+                        <Typography>ФИО: {employeeInfo.fio}</Typography>
                         <Typography>Размещение: {employeeInfo.location}</Typography>
                     </CardContent>
                 </Card>
             )}
             {devices.length > 0 && (
                 <div>
-                    <Typography variant="h5">Прикреплённые устройства</Typography>
+                    <Typography variant="h5">Прикреплённое оборудование</Typography>
                     {devices.map((device) => (
                         <Card key={device.serialNumber}>
                             <CardContent>
