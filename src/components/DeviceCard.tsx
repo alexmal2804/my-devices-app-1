@@ -16,7 +16,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device }) => {
                 <Typography color="text.secondary">Модель: <b>{device.model}</b></Typography>
                 <Typography color="text.secondary">Серийный номер: <b>{device.serialNumber}</b></Typography>
                 <Typography color="text.secondary">Статус: <b>{device.status}</b></Typography>
-                <Typography color="text.secondary">КТС: <b>{device.ctc}</b></Typography>
+                <Typography color="text.secondary">Коэффициент технического состояния: <b>{device.ctc}</b></Typography>
             </CardContent>
         </Card>
     );

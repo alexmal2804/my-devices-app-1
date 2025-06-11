@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, TextField, Button, Typography, CircularProgress } from '@mui/material';
+import { Box, TextField, Typography, CircularProgress, Paper, IconButton, Button } from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
 import { sendMessageToAI } from '../services/aiService';
+
+const SBER_GREEN = '#21A038';
+const SBER_LIGHT = '#F4F7F6';
+const SBER_ACCENT = '#00C95F';
 
 interface AIChatProps {
   employee: any;
   device: any;
   onClose: () => void;
+  compactInput?: boolean;
 }
 
 interface Message {
@@ -17,7 +23,7 @@ interface Message {
   };
 }
 
-const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose }) => {
+const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose, compactInput }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -70,23 +76,36 @@ const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose }) => {
 
   const handleSendTicket = () => {
     if (!pendingAction) return;
+    const deviceTitle = device?.nomenclature && device?.model
+      ? `${device.nomenclature} (${device.model})`
+      : device?.model || device?.nomenclature || '';
     setMessages((msgs) => [
       ...msgs,
-      { sender: 'ai', text: `Обращение отправлено в поддержку. Какие у Вас еще будут вопросы по ${pendingAction.deviceInfo}?` }
+      { sender: 'ai', text: `Обращение отправлено в поддержку. Какие у Вас еще будут вопросы по ${deviceTitle}?` }
     ]);
     setPendingAction(null);
   };
 
   return (
-    <Box display="flex" flexDirection="column" height={400}>
+    <Paper
+      elevation={3}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        bgcolor: SBER_LIGHT,
+        borderRadius: 3,
+        position: 'relative',
+      }}
+    >
       <Box
         ref={chatRef}
-        flex={1}
-        overflow="auto"
-        mb={2}
-        p={1}
-        bgcolor="#f5f5f5"
-        borderRadius={1}
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+          p: 2,
+          bgcolor: SBER_LIGHT,
+        }}
       >
         {messages.map((msg, idx) => (
           <Box
@@ -96,31 +115,86 @@ const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose }) => {
             mb={1}
           >
             <Box
-              bgcolor={msg.sender === 'user' ? 'primary.main' : 'grey.300'}
-              color={msg.sender === 'user' ? 'white' : 'black'}
-              px={2}
-              py={1}
-              borderRadius={2}
-              maxWidth="80%"
+              sx={{
+                bgcolor: msg.sender === 'user' ? SBER_GREEN : '#fff',
+                color: msg.sender === 'user' ? 'white' : 'black',
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+                maxWidth: '80%',
+                boxShadow: 1,
+              }}
             >
-              <Typography variant="body2">{msg.text}</Typography>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                {msg.text}
+              </Typography>
             </Box>
           </Box>
         ))}
         {loading && (
           <Box display="flex" justifyContent="center" mt={2}>
-            <CircularProgress size={24} />
+            <CircularProgress size={24} sx={{ color: SBER_GREEN }} />
           </Box>
         )}
         {pendingAction && (
-          <Box display="flex" justifyContent="flex-start" mt={2}>
-            <Button variant="contained" color="success" onClick={handleSendTicket}>
-              Отправить
-            </Button>
+          <Box display="flex" flexDirection="column" alignItems="flex-start" mt={2}>
+            <Box
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: 2,
+                boxShadow: 1,
+                p: 2,
+                width: '100%',
+                minWidth: 0,
+                position: 'relative',
+                minHeight: 64,
+                mb: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+              }}
+            >
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', width: '100%' }}>
+                {pendingAction.text}
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                sx={{
+                  color: SBER_GREEN,
+                  borderColor: SBER_GREEN,
+                  fontWeight: 700,
+                  borderRadius: 2,
+                  minWidth: 90,
+                  height: 32,
+                  mt: 1.5,
+                  mr: 1.5,
+                  textTransform: 'none',
+                  background: '#fff',
+                  boxShadow: 0,
+                  alignSelf: 'flex-end',
+                  '&:hover': {
+                    borderColor: SBER_ACCENT,
+                    color: SBER_ACCENT,
+                    background: '#f4fff6',
+                  },
+                }}
+                onClick={handleSendTicket}
+              >
+                Отправить
+              </Button>
+            </Box>
           </Box>
         )}
       </Box>
-      <Box display="flex" gap={1}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          p: compactInput ? 1 : 2,
+          bgcolor: SBER_LIGHT,
+        }}
+      >
         <TextField
           fullWidth
           size="small"
@@ -129,16 +203,48 @@ const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose }) => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           disabled={loading || !!pendingAction}
+          sx={{
+            bgcolor: 'white',
+            borderRadius: 2,
+            mr: 1,
+            height: compactInput ? 36 : undefined,
+            '& .MuiOutlinedInput-root': {
+              height: compactInput ? 36 : undefined,
+              fontSize: compactInput ? '0.95rem' : undefined,
+              '& fieldset': {
+                borderColor: SBER_ACCENT,
+              },
+              '&:hover fieldset': {
+                borderColor: SBER_GREEN,
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: SBER_GREEN,
+              },
+            },
+          }}
         />
-        <Button
-          variant="contained"
+        <IconButton
           onClick={handleSend}
           disabled={loading || !input.trim() || !!pendingAction}
+          sx={{
+            bgcolor: SBER_GREEN,
+            color: 'white',
+            borderRadius: '50%',
+            width: 36,
+            height: 36,
+            minWidth: 36,
+            minHeight: 36,
+            ml: 0.5,
+            boxShadow: 2,
+            '&:hover': {
+              bgcolor: SBER_ACCENT,
+            },
+          }}
         >
-          Отправить
-        </Button>
+          <SendIcon fontSize="small" sx={{ transform: 'rotate(-90deg)' }} />
+        </IconButton>
       </Box>
-    </Box>
+    </Paper>
   );
 };
 

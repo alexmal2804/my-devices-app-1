@@ -345,7 +345,7 @@ const DeviceForm = () => {
                 }}
             >
                 <DialogTitle sx={{ color: (selectedDevice && (selectedDevice.status !== 'исправен' || parseInt(selectedDevice.ctc, 10) < 20)) ? '#d32f2f' : SBER_GREEN, fontWeight: 700, fontSize: '1.3rem' }}>
-                    {selectedDevice?.nomenclature || 'Оборудование'}
+                    {selectedDevice?.nomenclature === 'Настольный' ? 'Настольный ПК' : selectedDevice?.nomenclature || 'Оборудование'}
                 </DialogTitle>
                 <DialogContent dividers sx={{ p: 3, position: 'relative', minHeight: 220 }}>
                     {selectedDevice && (
@@ -372,7 +372,7 @@ const DeviceForm = () => {
                                 Статус: <b>{selectedDevice.status}</b>
                             </Typography>
                             <Typography sx={{ color: parseInt(selectedDevice.ctc, 10) < 20 ? '#d32f2f' : undefined }}>
-                                КТС: <b>{selectedDevice.ctc}</b>
+                                Коэффициент технического состояния: <b>{selectedDevice.ctc}</b>
                             </Typography>
                         </Box>
                     )}
