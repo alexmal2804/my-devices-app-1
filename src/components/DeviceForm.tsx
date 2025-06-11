@@ -7,6 +7,7 @@ import { Global } from '@emotion/react';
 import { Device } from '../types';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import AIAssistant from './AIAssistant';
 
 const SBER_GREEN = '#21A038';
 const SBER_LIGHT = '#F4F7F6';
@@ -214,13 +215,13 @@ const DeviceForm = () => {
                                 <Typography variant="h6" fontWeight={600} sx={{ color: SBER_GREEN }} mb={1}>
                                     Информация о сотруднике
                                 </Typography>
-                                <Grid container spacing={1}>
-                                    <Grid item xs={12} sm={6}><Typography>Табельный номер: <b>{employee.tn}</b></Typography></Grid>
-                                    <Grid item xs={12} sm={6}><Typography>Подразделение: <b>{employee.division}</b></Typography></Grid>
-                                    <Grid item xs={12} sm={6}><Typography>Должность: <b>{employee.position}</b></Typography></Grid>
-                                    <Grid item xs={12} sm={6}><Typography>ФИО: <b>{employee.fio}</b></Typography></Grid>
-                                    <Grid item xs={12}><Typography>Размещение: <b>{employee.location}</b></Typography></Grid>
-                                </Grid>
+                                <Box display="flex" flexWrap="wrap" gap={2} mb={2}>
+                                    <Box minWidth={200}><Typography>Табельный номер: <b>{employee.tn}</b></Typography></Box>
+                                    <Box minWidth={200}><Typography>Подразделение: <b>{employee.division}</b></Typography></Box>
+                                    <Box minWidth={200}><Typography>Должность: <b>{employee.position}</b></Typography></Box>
+                                    <Box minWidth={200}><Typography>ФИО: <b>{employee.fio}</b></Typography></Box>
+                                    <Box minWidth={200}><Typography>Размещение: <b>{employee.location}</b></Typography></Box>
+                                </Box>
                             </Box>
                         </Card>
                     )}
@@ -246,25 +247,15 @@ const DeviceForm = () => {
                                 sx={{
                                     width: '100%',
                                     m: 0,
-                                    flexWrap: 'nowrap', // Всегда одна строка
-                                    overflowX: 'visible', // Без скроллинга
+                                    flexWrap: 'nowrap',
+                                    overflowX: 'visible',
                                 }}
                             >
                                 {paginatedDevices.map((device: Device, idx: number) => {
                                     // Определяем, является ли устройство "проблемным"
                                     const isProblem = device.status !== 'исправен' || (parseInt(device.ctc, 10) < 20);
                                     return (
-                                        <Grid
-                                            item
-                                            xs="auto"
-                                            key={device.id}
-                                            sx={{
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'stretch',
-                                                m: 0,
-                                            }}
-                                        >
+                                        <Box key={device.id} display="flex" justifyContent="center" alignItems="stretch" m={0} width="100%">
                                             <Box
                                                 sx={{
                                                     width: Math.min(maxModelWidth, 200),
@@ -330,7 +321,7 @@ const DeviceForm = () => {
                                                     </CardContent>
                                                 </Card>
                                             </Box>
-                                        </Grid>
+                                        </Box>
                                     );
                                 })}
                             </Grid>
@@ -342,19 +333,21 @@ const DeviceForm = () => {
             <Dialog
                 open={openModal}
                 onClose={handleCloseModal}
-                maxWidth="sm" // Было md, стало sm для меньшей ширины
+                maxWidth="sm"
                 fullWidth
                 PaperProps={{
                     sx: {
-                        maxWidth: 420, // Явно ограничиваем ширину модального окна
+                        maxWidth: 420,
                         minWidth: 320,
+                        position: 'relative',
+                        overflow: 'visible',
                     }
                 }}
             >
                 <DialogTitle sx={{ color: (selectedDevice && (selectedDevice.status !== 'исправен' || parseInt(selectedDevice.ctc, 10) < 20)) ? '#d32f2f' : SBER_GREEN, fontWeight: 700, fontSize: '1.3rem' }}>
                     {selectedDevice?.nomenclature || 'Оборудование'}
                 </DialogTitle>
-                <DialogContent dividers sx={{ p: 3 }}>
+                <DialogContent dividers sx={{ p: 3, position: 'relative', minHeight: 220 }}>
                     {selectedDevice && (
                         <Box display="flex" flexDirection="column" gap={1}>
                             <Typography>Модель: <b>{selectedDevice.model}</b></Typography>
@@ -381,6 +374,16 @@ const DeviceForm = () => {
                             <Typography sx={{ color: parseInt(selectedDevice.ctc, 10) < 20 ? '#d32f2f' : undefined }}>
                                 КТС: <b>{selectedDevice.ctc}</b>
                             </Typography>
+                        </Box>
+                    )}
+                    {/* Кнопка AI-помощник в правом нижнем углу модального окна */}
+                    {selectedDevice && employee && (
+                        <Box sx={{ position: 'absolute', bottom: 16, right: 16, zIndex: 10 }}>
+                            <AIAssistant
+                                employee={employee}
+                                device={selectedDevice}
+                                buttonLabel="AI-помощник"
+                            />
                         </Box>
                     )}
                 </DialogContent>

@@ -24,12 +24,35 @@ const Dashboard = () => {
                 Прикреплённое оборудование сотрудника
             </Typography>
             {employee && <EmployeeInfo employee={employee} />}
-            <Grid container spacing={2}>
-                {devices.map((device) => (
-                    <Grid item xs={12} sm={6} md={4} key={device.id}>
-                        <DeviceCard device={device} />
-                    </Grid>
-                ))}
+            <Grid
+                container
+                spacing={0}
+                rowSpacing={1.25}
+                justifyContent="center"
+                alignItems="stretch"
+                sx={{
+                    width: '100%',
+                    m: 0,
+                    flexWrap: 'nowrap',
+                    overflowX: 'visible',
+                }}
+            >
+                {devices.map((device: Device, idx: number) => {
+                    return (
+                        <Grid
+                            container
+                            sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'stretch',
+                                m: 0,
+                            }}
+                            key={device.id}
+                        >
+                            <DeviceCard device={device} />
+                        </Grid>
+                    );
+                })}
             </Grid>
         </div>
     );
