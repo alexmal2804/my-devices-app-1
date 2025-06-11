@@ -251,7 +251,8 @@ const DeviceForm = () => {
                                 }}
                             >
                                 {paginatedDevices.map((device: Device, idx: number) => {
-                                    // Определяем, является ли эта карточка определяющей ширину (самый длинный model)
+                                    // Определяем, является ли устройство "проблемным"
+                                    const isProblem = device.status !== 'исправен' || (parseInt(device.ctc, 10) < 20);
                                     return (
                                         <Grid
                                             item
@@ -266,9 +267,9 @@ const DeviceForm = () => {
                                         >
                                             <Box
                                                 sx={{
-                                                    width: Math.min(maxModelWidth, 200), // Сделать карточки еще уже, максимум 200px
-                                                    minWidth: 140, // Минимальная ширина меньше
-                                                    height: 140,   // Высота меньше
+                                                    width: Math.min(maxModelWidth, 200),
+                                                    minWidth: 140,
+                                                    height: 140,
                                                     display: 'flex',
                                                     mt: '8px',
                                                     mb: '8px',
@@ -276,7 +277,7 @@ const DeviceForm = () => {
                                                     mr: '3px',
                                                     background: '#fff',
                                                     borderRadius: 3,
-                                                    border: `1.5px solid ${SBER_GREEN}`,
+                                                    border: `1.5px solid ${isProblem ? '#d32f2f' : SBER_GREEN}`,
                                                     boxShadow: 2,
                                                     overflow: 'visible',
                                                     flexShrink: 0,
@@ -310,7 +311,7 @@ const DeviceForm = () => {
                                                             justifyContent: 'center',
                                                         }}
                                                     >
-                                                        <Typography fontWeight={600} sx={{ color: SBER_GREEN, fontSize: '1rem' }}>
+                                                        <Typography fontWeight={600} sx={{ color: isProblem ? '#d32f2f' : SBER_GREEN, fontSize: '1rem' }}>
                                                             {device.nomenclature === 'Настольный' ? 'Настольный ПК' : device.nomenclature}
                                                         </Typography>
                                                         <Typography sx={{ fontSize: '0.95rem' }}>
