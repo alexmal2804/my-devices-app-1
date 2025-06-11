@@ -12,7 +12,7 @@ export interface Device {
     nomenclature: string;
     model: string;
     serialNumber: string;
-    dateOfReceipt: string;
+    dateReceipt: string;
     status: string;
     ctc: string;
 }

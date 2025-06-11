@@ -23,12 +23,14 @@ const initialState: AuthState = {
 
 export const fetchEmployeeData = createAsyncThunk(
   'auth/fetchEmployeeData',
-  async (tn: string) => {
+  async (tn: string, { dispatch }) => {
     const q = query(collection(db, 'employees'), where('tn', '==', tn));
     const snapshot = await getDocs(q);
     if (snapshot.empty) return null;
     const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as Employee;
+    const employee = { id: doc.id, ...doc.data() } as Employee;
+    dispatch(login(employee)); // <--- добавлено, чтобы employee попадал в store
+    return employee;
   }
 );
 
