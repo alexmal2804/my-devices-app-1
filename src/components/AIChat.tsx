@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, TextField, Typography, CircularProgress, Paper, IconButton, Button } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { sendMessageToAI } from '../services/aiService';
+import { marked } from 'marked';
 
 const SBER_GREEN = '#21A038';
 const SBER_LIGHT = '#F4F7F6';
@@ -125,9 +126,17 @@ const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose, compactInput
                 boxShadow: 1,
               }}
             >
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-                {msg.text}
-              </Typography>
+              {msg.sender === 'ai' ? (
+                <Box
+                  component="span"
+                  sx={{ fontSize: '0.98rem', lineHeight: 1.6 }}
+                  dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) as string }}
+                />
+              ) : (
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                  {msg.text}
+                </Typography>
+              )}
             </Box>
           </Box>
         ))}

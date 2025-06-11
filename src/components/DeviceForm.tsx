@@ -68,25 +68,16 @@ const DeviceForm = () => {
 
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log('[DeviceForm] handleLogin: start, employeeId =', employeeId);
         const result: any = await dispatch<any>(fetchEmployeeData(employeeId));
-        console.log('[DeviceForm] fetchEmployeeData result:', result);
         if (result.payload) {
-            // setEmployeeInfo(result.payload);
-            console.log('[DeviceForm] employee found:', result.payload);
             const devicesResult: any = await dispatch<any>(fetchDevices(result.payload.id));
-            console.log('[DeviceForm] fetchDevices result:', devicesResult);
             if (devicesResult.payload) {
-                // setDevices(devicesResult.payload);
-                console.log('[DeviceForm] devices found:', devicesResult.payload);
+                // устройства найдены
             } else {
-                // setDevices([]);
-                console.log('[DeviceForm] no devices found');
+                // нет устройств
             }
         } else {
-            // setEmployeeInfo(null);
-            // setDevices([]);
-            console.log('[DeviceForm] employee not found');
+            // сотрудник не найден
         }
     };
 
