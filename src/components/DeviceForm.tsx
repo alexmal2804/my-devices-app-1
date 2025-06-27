@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployeeData, logout } from '../features/authSlice';
 import { fetchDevices, clearDevices } from '../features/devicesSlice';
