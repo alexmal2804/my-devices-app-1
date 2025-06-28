@@ -31,27 +31,72 @@ const textSplitter = new RecursiveCharacterTextSplitter({
 // Функция для извлечения текста из различных типов файлов
 export const extractTextFromFile = async (file: File): Promise<string> => {
   const fileType = file.type || '.' + file.name.split('.').pop()?.toLowerCase()
+  console.log(
+    '📁 Extract: Определен тип файла:',
+    fileType,
+    'для файла:',
+    file.name
+  )
 
   try {
     switch (true) {
       case fileType.includes('text/plain') || fileType.includes('.txt'):
+        console.log('📄 Extract: Обрабатываем TXT файл')
         return await file.text()
 
       case fileType.includes('application/pdf') || fileType.includes('.pdf'):
-        return await extractTextFromPDF(file)
+        console.log('📄 Extract: Обрабатываем PDF файл:', file.name)
+        console.log('📄 Extract: Размер PDF файла:', file.size, 'байт')
+
+        try {
+          const pdfText = await extractTextFromPDF(file)
+          console.log(
+            '✅ Extract: PDF обработан, длина текста:',
+            pdfText.length
+          )
+
+          // Проверяем, получили ли мы реальный текст или placeholder
+          if (pdfText.includes('Содержимое PDF файла временно недоступно')) {
+            console.warn('⚠️ Extract: PDF обработан через fallback placeholder')
+          } else {
+            console.log(
+              '✅ Extract: PDF успешно обработан с извлечением текста'
+            )
+            console.log(
+              '📝 Extract: Превью первых 200 символов:',
+              pdfText.substring(0, 200)
+            )
+          }
+
+          return pdfText
+        } catch (pdfError) {
+          console.error('❌ Extract: Ошибка при обработке PDF:', pdfError)
+          // Возвращаем простой placeholder если PDF полностью не обрабатывается
+          return `PDF файл: ${file.name}\nРазмер: ${
+            file.size
+          } байт\nОшибка обработки: ${
+            pdfError instanceof Error ? pdfError.message : 'Неизвестная ошибка'
+          }`
+        }
 
       case fileType.includes(
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       ) || fileType.includes('.docx'):
+        console.log('📄 Extract: Обрабатываем DOCX файл')
         const docxBuffer = await file.arrayBuffer()
         const docxResult = await mammoth.extractRawText({
           arrayBuffer: docxBuffer,
         })
+        console.log(
+          '✅ Extract: DOCX обработан, длина текста:',
+          docxResult.value.length
+        )
         return docxResult.value
 
       case fileType.includes(
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       ) || fileType.includes('.xlsx'):
+        console.log('📄 Extract: Обрабатываем XLSX файл')
         const xlsxBuffer = await file.arrayBuffer()
         const workbook = XLSX.read(xlsxBuffer, { type: 'array' })
         let xlsxText = ''
@@ -59,39 +104,60 @@ export const extractTextFromFile = async (file: File): Promise<string> => {
           const worksheet = workbook.Sheets[sheetName]
           xlsxText += XLSX.utils.sheet_to_txt(worksheet) + '\n'
         })
+        console.log(
+          '✅ Extract: XLSX обработан, длина текста:',
+          xlsxText.length
+        )
         return xlsxText
 
       case fileType.includes('text/csv') || fileType.includes('.csv'):
+        console.log('📄 Extract: Обрабатываем CSV файл')
         const csvText = await file.text()
         const csvResult = Papa.parse(csvText, { header: true })
-        return csvResult.data
+        const csvProcessed = csvResult.data
           .map((row: any) => Object.values(row).join(' '))
           .join('\n')
+        console.log(
+          '✅ Extract: CSV обработан, длина текста:',
+          csvProcessed.length
+        )
+        return csvProcessed
 
       default:
+        console.error('❌ Extract: Неподдерживаемый тип файла:', fileType)
         throw new Error(`Неподдерживаемый тип файла: ${fileType}`)
     }
   } catch (error) {
-    console.error('Ошибка извлечения текста из файла:', error)
-    throw new Error(`Не удалось извлечь текст из файла ${file.name}`)
+    console.error('❌ Extract: Ошибка извлечения текста из файла:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    throw new Error(
+      `Не удалось извлечь текст из файла ${file.name}: ${errorMessage}`
+    )
   }
 }
 
 // Функция для генерации эмбеддингов
 export const generateEmbedding = async (text: string): Promise<number[]> => {
   try {
-    console.log('🤖 Embedding: Запрашиваем эмбеддинг для текста длиной:', text.length, 'символов')
-    
+    console.log(
+      '🤖 Embedding: Запрашиваем эмбеддинг для текста длиной:',
+      text.length,
+      'символов'
+    )
+
     const response = await client.embeddings.create({
       model: 'text-embedding-ada-002',
       input: text.substring(0, 8000), // Ограничиваем длину для безопасности
     })
 
-    console.log('✅ Embedding: Получен эмбеддинг размером:', response.data[0].embedding.length)
+    console.log(
+      '✅ Embedding: Получен эмбеддинг размером:',
+      response.data[0].embedding.length
+    )
     return response.data[0].embedding
   } catch (error) {
     console.error('❌ Embedding: Ошибка генерации эмбеддинга:', error)
-    
+
     // Попробуем другую модель, если ada-002 не работает
     try {
       console.log('🔄 Embedding: Пробуем альтернативную модель...')
@@ -99,10 +165,16 @@ export const generateEmbedding = async (text: string): Promise<number[]> => {
         model: 'text-embedding-3-small',
         input: text.substring(0, 8000),
       })
-      console.log('✅ Embedding: Альтернативная модель сработала, размер:', response.data[0].embedding.length)
+      console.log(
+        '✅ Embedding: Альтернативная модель сработала, размер:',
+        response.data[0].embedding.length
+      )
       return response.data[0].embedding
     } catch (fallbackError) {
-      console.error('❌ Embedding: Альтернативная модель тоже не работает:', fallbackError)
+      console.error(
+        '❌ Embedding: Альтернативная модель тоже не работает:',
+        fallbackError
+      )
       throw new Error('Все модели эмбеддингов недоступны')
     }
   }
@@ -114,14 +186,26 @@ export const processAndSaveDocument = async (
   onProgress?: (progress: number) => void
 ): Promise<void> => {
   try {
-    console.log('📄 Process: Начинаем обработку файла:', file.name, 'размер:', file.size)
+    console.log(
+      '📄 Process: Начинаем обработку файла:',
+      file.name,
+      'размер:',
+      file.size
+    )
     onProgress?.(10)
 
     // Извлекаем текст из файла
     console.log('📝 Process: Извлекаем текст из файла...')
     const content = await extractTextFromFile(file)
-    console.log('✅ Process: Текст извлечен, длина:', content.length, 'символов')
-    console.log('📝 Process: Превью содержимого:', content.substring(0, 200) + '...')
+    console.log(
+      '✅ Process: Текст извлечен, длина:',
+      content.length,
+      'символов'
+    )
+    console.log(
+      '📝 Process: Превью содержимого:',
+      content.substring(0, 200) + '...'
+    )
     onProgress?.(30)
 
     // Создаем LangChain Document
@@ -154,14 +238,24 @@ export const processAndSaveDocument = async (
     onProgress?.(60)
 
     // Генерируем эмбеддинги для каждого чанка и сохраняем
-    console.log('🤖 Process: Генерируем эмбеддинги для', chunks.length, 'чанков...')
+    console.log(
+      '🤖 Process: Генерируем эмбеддинги для',
+      chunks.length,
+      'чанков...'
+    )
     const vectorChunks = []
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i]
-      console.log(`🔄 Process: Обрабатываем чанк ${i + 1}/${chunks.length}, длина:`, chunk.pageContent.length)
-      
+      console.log(
+        `🔄 Process: Обрабатываем чанк ${i + 1}/${chunks.length}, длина:`,
+        chunk.pageContent.length
+      )
+
       const embedding = await generateEmbedding(chunk.pageContent)
-      console.log(`✅ Process: Эмбеддинг для чанка ${i + 1} готов, размер:`, embedding.length)
+      console.log(
+        `✅ Process: Эмбеддинг для чанка ${i + 1} готов, размер:`,
+        embedding.length
+      )
 
       vectorChunks.push({
         document_id: savedDocument.id,
@@ -177,10 +271,14 @@ export const processAndSaveDocument = async (
     }
 
     // Сохраняем векторные чанки в Supabase
-    console.log('💾 Process: Сохраняем', vectorChunks.length, 'векторных чанков в Supabase...')
+    console.log(
+      '💾 Process: Сохраняем',
+      vectorChunks.length,
+      'векторных чанков в Supabase...'
+    )
     await saveDocumentChunks(vectorChunks)
     console.log('✅ Process: Все чанки успешно сохранены!')
-    
+
     onProgress?.(100)
   } catch (error) {
     console.error('❌ Process: Ошибка обработки документа:', error)
@@ -194,16 +292,26 @@ export const searchDocuments = async (
   limit: number = 5
 ): Promise<{ content: string; metadata: any; similarity: number }[]> => {
   try {
-    console.log('🔍 RAG Search: Генерируем эмбеддинг для запроса:', query.substring(0, 100))
-    
+    console.log(
+      '🔍 RAG Search: Генерируем эмбеддинг для запроса:',
+      query.substring(0, 100)
+    )
+
     // Генерируем эмбеддинг для запроса
     const queryEmbedding = await generateEmbedding(query)
-    console.log('✅ RAG Search: Эмбеддинг сгенерирован, размер:', queryEmbedding.length)
+    console.log(
+      '✅ RAG Search: Эмбеддинг сгенерирован, размер:',
+      queryEmbedding.length
+    )
 
     // Ищем похожие чанки в Supabase
     console.log('🔍 RAG Search: Ищем похожие чанки в Supabase...')
     const results = await searchSimilarChunks(queryEmbedding, limit)
-    console.log('📋 RAG Search: Результаты из Supabase:', results.length, 'чанков')
+    console.log(
+      '📋 RAG Search: Результаты из Supabase:',
+      results.length,
+      'чанков'
+    )
 
     const formattedResults = results.map((result: any) => ({
       content: result.content,
@@ -211,7 +319,11 @@ export const searchDocuments = async (
       similarity: result.similarity,
     }))
 
-    console.log('✅ RAG Search: Возвращаем', formattedResults.length, 'отформатированных результатов')
+    console.log(
+      '✅ RAG Search: Возвращаем',
+      formattedResults.length,
+      'отформатированных результатов'
+    )
     return formattedResults
   } catch (error) {
     console.error('❌ RAG Search: Ошибка поиска в документах:', error)
@@ -222,8 +334,11 @@ export const searchDocuments = async (
 
 // Функция для создания контекста RAG
 export const createRAGContext = async (query: string): Promise<string> => {
-  console.log('🔍 RAG: Начинаем поиск для запроса:', query.substring(0, 100) + '...')
-  
+  console.log(
+    '🔍 RAG: Начинаем поиск для запроса:',
+    query.substring(0, 100) + '...'
+  )
+
   try {
     const searchResults = await searchDocuments(query)
     console.log('📋 RAG: Найдено результатов:', searchResults.length)
@@ -233,19 +348,31 @@ export const createRAGContext = async (query: string): Promise<string> => {
       return ''
     }
 
-    console.log('✅ RAG: Результаты поиска:', searchResults.map(r => ({
-      similarity: r.similarity,
-      contentPreview: r.content.substring(0, 100) + '...'
-    })))
+    console.log(
+      '✅ RAG: Результаты поиска:',
+      searchResults.map((r) => ({
+        similarity: r.similarity,
+        contentPreview: r.content.substring(0, 100) + '...',
+      }))
+    )
 
     const context = searchResults
-      .map((result, index) => `Документ ${index + 1} (схожесть: ${result.similarity.toFixed(2)}):\n${result.content}`)
+      .map(
+        (result, index) =>
+          `Документ ${index + 1} (схожесть: ${result.similarity.toFixed(
+            2
+          )}):\n${result.content}`
+      )
       .join('\n\n---\n\n')
 
     const finalContext = `Контекст из документов:\n\n${context}`
-    console.log('📝 RAG: Сформированный контекст длиной:', finalContext.length, 'символов')
+    console.log(
+      '📝 RAG: Сформированный контекст длиной:',
+      finalContext.length,
+      'символов'
+    )
     console.log('🎯 RAG: Контекст готов к использованию в AI промпте')
-    
+
     return finalContext
   } catch (error) {
     console.error('❌ RAG: Ошибка при создании контекста:', error)

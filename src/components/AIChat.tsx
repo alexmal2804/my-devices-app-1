@@ -59,7 +59,6 @@ const AIChat: React.FC<AIChatProps> = ({
 
   useEffect(() => {
     // Инициализируем чат с приветственным сообщением
-    console.log('🧪 Тест импорта:', testFunction())
     console.log('🧪 Тип sendMessageToAI:', typeof sendMessageToAI)
     setLoading(true)
     sendMessageToAI('Поприветствуй пользователя', [], employee, device)
@@ -72,9 +71,12 @@ const AIChat: React.FC<AIChatProps> = ({
 
   const handleSend = async () => {
     if (!input.trim()) return
-    
-    console.log('💬 AI Chat: Пользователь отправил сообщение:', input.substring(0, 100))
-    
+
+    console.log(
+      '💬 AI Chat: Пользователь отправил сообщение:',
+      input.substring(0, 100)
+    )
+
     const newMessages: Message[] = [
       ...messages,
       { sender: 'user', text: input },
@@ -83,13 +85,18 @@ const AIChat: React.FC<AIChatProps> = ({
     const userInput = input
     setInput('')
     setLoading(true)
-    
+
     try {
       console.log('🤖 AI Chat: Отправляем запрос к AI сервису...')
-      const reply = await sendMessageToAI(userInput, newMessages, employee, device)
+      const reply = await sendMessageToAI(
+        userInput,
+        newMessages,
+        employee,
+        device
+      )
       console.log('📨 AI Chat: Получен ответ от AI, длина:', reply.length)
       console.log('📨 AI Chat: Получен ответ от AI, длина:', reply.length)
-      
+
       // Проверка на спец. маркер обращения
       if (reply.startsWith('[TICKET]')) {
         const ticketText = reply.replace('[TICKET]', '').trim()
@@ -109,8 +116,11 @@ const AIChat: React.FC<AIChatProps> = ({
     } catch (error) {
       console.error('❌ AI Chat: Ошибка при обработке сообщения:', error)
       setMessages([
-        ...newMessages, 
-        { sender: 'ai' as 'ai', text: 'Извините, произошла ошибка при обработке вашего запроса.' }
+        ...newMessages,
+        {
+          sender: 'ai' as 'ai',
+          text: 'Извините, произошла ошибка при обработке вашего запроса.',
+        },
       ])
     } finally {
       setLoading(false)

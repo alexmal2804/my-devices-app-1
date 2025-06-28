@@ -1,0 +1,49 @@
+{
+  "name": "My Devices App",
+  "short_name": "DevicesApp",
+  "description": "Система управления устройствами с ИИ-помощником",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#21A038",
+  "theme_color": "#21A038",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["productivity", "business", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Дашборд",
+      "short_name": "Dashboard",
+      "description": "Открыть главную панель",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "ИИ-помощник",
+      "short_name": "AI Chat",
+      "description": "Открыть чат с ИИ",
+      "url": "/dashboard?tab=ai",
+      "icons": [{ "src": "/icon.svg", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

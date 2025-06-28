@@ -29,9 +29,11 @@
     "openai": "^5.8.2",
     "papaparse": "^5.5.3",
     "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^5.3.31",
     "react-redux": "^7.2.9",
     "react-router-dom": "^5.3.4",
     "redux-persist": "^6.0.0",
+    "sharp": "^0.34.2",
     "web-vitals": "^2.1.4",
     "xlsx": "^0.18.5"
   },

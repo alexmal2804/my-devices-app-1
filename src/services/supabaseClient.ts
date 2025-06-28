@@ -105,21 +105,27 @@ export const searchSimilarChunks = async (
   limit: number = 10
 ) => {
   try {
-    console.log('🗄️ Supabase: Выполняем векторный поиск с эмбеддингом размера:', queryEmbedding.length)
+    console.log(
+      '🗄️ Supabase: Выполняем векторный поиск с эмбеддингом размера:',
+      queryEmbedding.length
+    )
     console.log('🔍 Supabase: Параметры поиска - threshold: 0.5, limit:', limit)
-    
+
     // Проверяем наличие данных перед поиском
-    const { data: checkData, error: checkError } = await supabase
+    const { count: checkCount, error: checkError } = await supabase
       .from('document_chunks')
-      .select('count(*)')
+      .select('*', { count: 'exact', head: true })
       .not('embedding', 'is', null)
-    
+
     if (checkError) {
-      console.warn('⚠️ Supabase: Не удалось проверить наличие эмбеддингов:', checkError)
+      console.warn(
+        '⚠️ Supabase: Не удалось проверить наличие эмбеддингов:',
+        checkError
+      )
     } else {
-      console.log('📊 Supabase: Чанков с эмбеддингами в базе:', checkData)
+      console.log('📊 Supabase: Чанков с эмбеддингами в базе:', checkCount || 0)
     }
-    
+
     const { data, error } = await supabase.rpc('match_documents', {
       query_embedding: queryEmbedding,
       match_threshold: 0.5, // Понижаем порог для лучшего поиска
@@ -128,55 +134,84 @@ export const searchSimilarChunks = async (
 
     if (error) {
       console.error('❌ Supabase: Ошибка векторного поиска:', error)
-      console.error('❌ Supabase: Детали ошибки:', error.message, error.details, error.hint)
+      console.error(
+        '❌ Supabase: Детали ошибки:',
+        error.message,
+        error.details,
+        error.hint
+      )
       throw error
     }
-    
-    console.log('✅ Supabase: Векторный поиск завершен, найдено результатов:', data?.length || 0)
+
+    console.log(
+      '✅ Supabase: Векторный поиск завершен, найдено результатов:',
+      data?.length || 0
+    )
     if (data && data.length > 0) {
-      console.log('📋 Supabase: Примеры результатов:', data.slice(0, 2).map((item: any) => ({
-        similarity: item.similarity,
-        filename: item.filename,
-        contentPreview: item.content?.substring(0, 50) + '...'
-      })))
+      console.log(
+        '📋 Supabase: Примеры результатов:',
+        data.slice(0, 2).map((item: any) => ({
+          similarity: item.similarity,
+          filename: item.filename,
+          contentPreview: item.content?.substring(0, 50) + '...',
+        }))
+      )
     } else {
-      console.log('⚠️ Supabase: Векторный поиск не вернул результатов, попробуем fallback')
+      console.log(
+        '⚠️ Supabase: Векторный поиск не вернул результатов, попробуем fallback'
+      )
     }
-    
+
     return data || []
   } catch (error) {
-    console.warn('⚠️ Supabase: Vector search failed, trying fallback search:', error)
-    
+    console.warn(
+      '⚠️ Supabase: Vector search failed, trying fallback search:',
+      error
+    )
+
     // Fallback: простой текстовый поиск по содержимому
     try {
       console.log('🔄 Supabase: Пробуем простой текстовый поиск...')
-      
+
       const { data: simpleData, error: simpleError } = await supabase
         .from('document_chunks')
-        .select(`
+        .select(
+          `
           id,
           content,
           document_id,
           documents!inner(filename)
-        `)
+        `
+        )
         .ilike('content', `%техническ%`) // Ищем по общим терминам
         .limit(limit)
 
       if (simpleError) {
-        console.warn('❌ Supabase: Простой поиск тоже не работает:', simpleError)
+        console.warn(
+          '❌ Supabase: Простой поиск тоже не работает:',
+          simpleError
+        )
         return []
       }
 
-      console.log('✅ Supabase: Простой поиск дал результаты:', simpleData?.length || 0)
-      return simpleData?.map((item: any) => ({
-        id: item.id,
-        document_id: item.document_id,
-        content: item.content,
-        filename: item.documents?.filename || 'Unknown',
-        similarity: 0.6 // Примерная схожесть для fallback поиска
-      })) || []
+      console.log(
+        '✅ Supabase: Простой поиск дал результаты:',
+        simpleData?.length || 0
+      )
+      return (
+        simpleData?.map((item: any) => ({
+          id: item.id,
+          document_id: item.document_id,
+          content: item.content,
+          filename: item.documents?.filename || 'Unknown',
+          similarity: 0.6, // Примерная схожесть для fallback поиска
+        })) || []
+      )
     } catch (fallbackError) {
-      console.error('❌ Supabase: Все варианты поиска провалились:', fallbackError)
+      console.error(
+        '❌ Supabase: Все варианты поиска провалились:',
+        fallbackError
+      )
       return []
     }
   }
@@ -277,13 +312,13 @@ export const checkDatabaseStatus = async () => {
 
 // Функция для проверки наличия документов в базе
 export const checkDocumentsAvailability = async (): Promise<{
-  documentsCount: number;
-  chunksCount: number;
-  sampleChunks: any[];
+  documentsCount: number
+  chunksCount: number
+  sampleChunks: any[]
 }> => {
   try {
     console.log('🔍 Check: Проверяем наличие документов в базе...')
-    
+
     // Проверяем количество документов
     const { data: documents, error: docsError } = await supabase
       .from('documents')
@@ -308,29 +343,35 @@ export const checkDocumentsAvailability = async (): Promise<{
 
     console.log('✅ Check: Документов в базе:', documents?.length || 0)
     console.log('✅ Check: Чанков в базе:', chunks?.length || 0)
-    
+
     if (documents && documents.length > 0) {
-      console.log('📋 Check: Примеры документов:', documents.map(d => d.filename))
+      console.log(
+        '📋 Check: Примеры документов:',
+        documents.map((d) => d.filename)
+      )
     }
-    
+
     if (chunks && chunks.length > 0) {
-      console.log('📋 Check: Примеры чанков:', chunks.map(c => ({
-        id: c.id,
-        preview: c.content.substring(0, 50) + '...'
-      })))
+      console.log(
+        '📋 Check: Примеры чанков:',
+        chunks.map((c) => ({
+          id: c.id,
+          preview: c.content.substring(0, 50) + '...',
+        }))
+      )
     }
 
     return {
       documentsCount: documents?.length || 0,
       chunksCount: chunks?.length || 0,
-      sampleChunks: chunks || []
+      sampleChunks: chunks || [],
     }
   } catch (error) {
     console.error('❌ Check: Ошибка проверки документов:', error)
     return {
       documentsCount: 0,
       chunksCount: 0,
-      sampleChunks: []
+      sampleChunks: [],
     }
   }
 }

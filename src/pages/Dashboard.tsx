@@ -43,11 +43,25 @@ const Dashboard = () => {
           gap: 2,
         }}
       >
-        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
-          {employee
-            ? 'Прикреплённое оборудование сотрудника'
-            : 'Режим загрузки документов'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0 }}>
+          {/* Иконка приложения */}
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              backgroundImage: 'url(/icon.svg)',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+            }}
+          />
+          <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+            {employee
+              ? 'Прикреплённое оборудование сотрудника'
+              : 'Режим загрузки документов'}
+          </Typography>
+        </Box>
         <Button
           variant="outlined"
           startIcon={<ArrowBackIcon />}

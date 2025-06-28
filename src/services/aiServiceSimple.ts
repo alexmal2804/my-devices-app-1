@@ -5,7 +5,8 @@ import { createRAGContext } from './ragService'
 import { checkDocumentsAvailability } from './supabaseClient'
 
 const VITE_AI_TUNNEL_KEY = import.meta.env.VITE_AI_TUNNEL_KEY
-const VITE_AI_TUNNEL_URL = import.meta.env.VITE_VITE_AI_TUNNEL_URL || 'https://api.aitunnel.ru/v1'
+const VITE_AI_TUNNEL_URL =
+  import.meta.env.VITE_VITE_AI_TUNNEL_URL || 'https://api.aitunnel.ru/v1'
 
 const client = new OpenAI({
   apiKey: VITE_AI_TUNNEL_KEY,
@@ -19,25 +20,43 @@ const sendMessageToAI = async (
   employee: any,
   device: any
 ): Promise<string> => {
-  console.log('🚀 AI Service: Начинаем обработку сообщения:', message.substring(0, 100))
-  
+  console.log(
+    '🚀 AI Service: Начинаем обработку сообщения:',
+    message.substring(0, 100)
+  )
+
   // Получаем контекст из документов через RAG
   let ragContext = ''
   try {
     console.log('📊 AI Service: Проверяем наличие документов в базе...')
     const docStatus = await checkDocumentsAvailability()
-    console.log('📊 AI Service: Статус документов - документов:', docStatus.documentsCount, 'чанков:', docStatus.chunksCount)
-    
+    console.log(
+      '📊 AI Service: Статус документов - документов:',
+      docStatus.documentsCount,
+      'чанков:',
+      docStatus.chunksCount
+    )
+
     if (docStatus.chunksCount === 0) {
       console.log('⚠️ AI Service: В базе нет чанков для поиска')
     } else {
-      console.log('🔍 AI Service: Запрашиваем RAG контекст для сообщения:', message.substring(0, 100))
+      console.log(
+        '🔍 AI Service: Запрашиваем RAG контекст для сообщения:',
+        message.substring(0, 100)
+      )
       ragContext = await createRAGContext(message)
       console.log('🔄 AI Service: RAG функция вернула результат')
-      
+
       if (ragContext && ragContext.trim()) {
-        console.log('✅ AI Service: RAG контекст получен, длина:', ragContext.length, 'символов')
-        console.log('📝 AI Service: Превью контекста:', ragContext.substring(0, 300) + '...')
+        console.log(
+          '✅ AI Service: RAG контекст получен, длина:',
+          ragContext.length,
+          'символов'
+        )
+        console.log(
+          '📝 AI Service: Превью контекста:',
+          ragContext.substring(0, 300) + '...'
+        )
       } else {
         console.log('⚠️ AI Service: RAG контекст пустой или не найден')
       }
@@ -57,7 +76,9 @@ const sendMessageToAI = async (
     return fio
   }
 
-  const nameAndPatronymic = employee?.fio ? getNameAndPatronymic(employee.fio) : ''
+  const nameAndPatronymic = employee?.fio
+    ? getNameAndPatronymic(employee.fio)
+    : ''
   const isFirstMessage = history.length === 0
 
   const systemPrompt = `
@@ -93,7 +114,10 @@ ${
 }
 `
 
-  console.log('📋 AI Service: Системный промпт подготовлен, длина:', systemPrompt.length)
+  console.log(
+    '📋 AI Service: Системный промпт подготовлен, длина:',
+    systemPrompt.length
+  )
   if (ragContext && ragContext.trim()) {
     console.log('🎯 AI Service: В промпт включен RAG контекст!')
   }
@@ -116,9 +140,10 @@ ${
     temperature: 0.8,
   })
 
-  const result = response.choices?.[0]?.message?.content || 'Ошибка ответа от AI'
+  const result =
+    response.choices?.[0]?.message?.content || 'Ошибка ответа от AI'
   console.log('📨 AI Service: Получен ответ от AI, длина:', result.length)
-  
+
   return result
 }
 
