@@ -1,91 +1,137 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, TextField, Typography, CircularProgress, Paper, IconButton, Button } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
-import { sendMessageToAI } from '../services/aiService';
-import { marked } from 'marked';
+import React, { useState, useEffect, useRef } from 'react'
+import {
+  Box,
+  TextField,
+  Typography,
+  CircularProgress,
+  Paper,
+  IconButton,
+  Button,
+} from '@mui/material'
+import SendIcon from '@mui/icons-material/Send'
+import { sendMessageToAI } from '../services/aiServiceSimple'
+import { marked } from 'marked'
 
-const SBER_GREEN = '#21A038';
-const SBER_LIGHT = '#F4F7F6';
-const SBER_ACCENT = '#00C95F';
+const SBER_GREEN = '#21A038'
+const SBER_LIGHT = '#F4F7F6'
+const SBER_ACCENT = '#00C95F'
 
 interface AIChatProps {
-  employee: any;
-  device: any;
-  onClose: () => void;
-  compactInput?: boolean;
+  employee: any
+  device: any
+  onClose: () => void
+  compactInput?: boolean
 }
 
 interface Message {
-  sender: 'user' | 'ai';
-  text: string;
+  sender: 'user' | 'ai'
+  text: string
   action?: {
-    type: string;
-    payload: any;
-  };
+    type: string
+    payload: any
+  }
 }
 
-const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose, compactInput }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [pendingAction, setPendingAction] = useState<null | {text: string, deviceInfo: string}>(null);
-  const chatRef = useRef<HTMLDivElement>(null);
-
-  // Системный промпт
-  const systemPrompt = `\nТы — AI-помощник по ИТ-оборудованию.\nИнформация о сотруднике: ${JSON.stringify(employee)}\nИнформация об оборудовании: ${JSON.stringify(device)}\nОтвечай только по данному оборудованию.\n`;
+const AIChat: React.FC<AIChatProps> = ({
+  employee,
+  device,
+  onClose,
+  compactInput,
+}) => {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [pendingAction, setPendingAction] = useState<null | {
+    text: string
+    deviceInfo: string
+  }>(null)
+  const chatRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     return () => {
-      setMessages([]);
-    };
-  }, [onClose]);
+      setMessages([])
+    }
+  }, [onClose])
 
   useEffect(() => {
-    chatRef.current?.scrollTo(0, chatRef.current.scrollHeight);
-  }, [messages]);
+    chatRef.current?.scrollTo(0, chatRef.current.scrollHeight)
+  }, [messages])
 
   useEffect(() => {
-    setLoading(true);
-    sendMessageToAI(systemPrompt, [], employee, device)
-      .then((reply) => {
-        setMessages([{ sender: 'ai', text: reply }]);
+    // Инициализируем чат с приветственным сообщением
+    console.log('🧪 Тест импорта:', testFunction())
+    console.log('🧪 Тип sendMessageToAI:', typeof sendMessageToAI)
+    setLoading(true)
+    sendMessageToAI('Поприветствуй пользователя', [], employee, device)
+      .then((reply: string) => {
+        setMessages([{ sender: 'ai', text: reply }])
       })
-      .finally(() => setLoading(false));
+      .finally(() => setLoading(false))
     // eslint-disable-next-line
-  }, []);
+  }, [])
 
   const handleSend = async () => {
-    if (!input.trim()) return;
-    const newMessages: Message[] = [...messages, { sender: 'user', text: input }];
-    setMessages(newMessages);
-    setInput('');
-    setLoading(true);
+    if (!input.trim()) return
+    
+    console.log('💬 AI Chat: Пользователь отправил сообщение:', input.substring(0, 100))
+    
+    const newMessages: Message[] = [
+      ...messages,
+      { sender: 'user', text: input },
+    ]
+    setMessages(newMessages)
+    const userInput = input
+    setInput('')
+    setLoading(true)
+    
     try {
-      const reply = await sendMessageToAI(input, newMessages, employee, device);
+      console.log('🤖 AI Chat: Отправляем запрос к AI сервису...')
+      const reply = await sendMessageToAI(userInput, newMessages, employee, device)
+      console.log('📨 AI Chat: Получен ответ от AI, длина:', reply.length)
+      console.log('📨 AI Chat: Получен ответ от AI, длина:', reply.length)
+      
       // Проверка на спец. маркер обращения
       if (reply.startsWith('[TICKET]')) {
-        const ticketText = reply.replace('[TICKET]', '').trim();
-        setPendingAction({text: ticketText, deviceInfo: device?.name || device?.id || ''});
-        setMessages([...newMessages, { sender: 'ai' as 'ai', text: ticketText }]);
+        const ticketText = reply.replace('[TICKET]', '').trim()
+        console.log('🎫 AI Chat: Обнаружен маркер создания тикета')
+        setPendingAction({
+          text: ticketText,
+          deviceInfo: device?.name || device?.id || '',
+        })
+        setMessages([
+          ...newMessages,
+          { sender: 'ai' as 'ai', text: ticketText },
+        ])
       } else {
-        setMessages([...newMessages, { sender: 'ai' as 'ai', text: reply }]);
+        console.log('💬 AI Chat: Обычный ответ, добавляем в чат')
+        setMessages([...newMessages, { sender: 'ai' as 'ai', text: reply }])
       }
+    } catch (error) {
+      console.error('❌ AI Chat: Ошибка при обработке сообщения:', error)
+      setMessages([
+        ...newMessages, 
+        { sender: 'ai' as 'ai', text: 'Извините, произошла ошибка при обработке вашего запроса.' }
+      ])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleSendTicket = () => {
-    if (!pendingAction) return;
-    const deviceTitle = device?.nomenclature && device?.model
-      ? `${device.nomenclature} (${device.model})`
-      : device?.model || device?.nomenclature || '';
+    if (!pendingAction) return
+    const deviceTitle =
+      device?.nomenclature && device?.model
+        ? `${device.nomenclature} (${device.model})`
+        : device?.model || device?.nomenclature || ''
     setMessages((msgs) => [
       ...msgs,
-      { sender: 'ai', text: `Обращение отправлено в поддержку. Какие у Вас еще будут вопросы по ${deviceTitle}?` }
-    ]);
-    setPendingAction(null);
-  };
+      {
+        sender: 'ai',
+        text: `Обращение отправлено в поддержку. Какие у Вас еще будут вопросы по ${deviceTitle}?`,
+      },
+    ])
+    setPendingAction(null)
+  }
 
   return (
     <Paper
@@ -130,7 +176,9 @@ const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose, compactInput
                 <Box
                   component="span"
                   sx={{ fontSize: '0.98rem', lineHeight: 1.6 }}
-                  dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) as string }}
+                  dangerouslySetInnerHTML={{
+                    __html: marked.parse(msg.text) as string,
+                  }}
                 />
               ) : (
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
@@ -146,7 +194,12 @@ const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose, compactInput
           </Box>
         )}
         {pendingAction && (
-          <Box display="flex" flexDirection="column" alignItems="flex-start" mt={2}>
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="flex-start"
+            mt={2}
+          >
             <Box
               sx={{
                 bgcolor: '#fff',
@@ -163,7 +216,10 @@ const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose, compactInput
                 alignItems: 'flex-end',
               }}
             >
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', width: '100%' }}>
+              <Typography
+                variant="body2"
+                sx={{ whiteSpace: 'pre-line', width: '100%' }}
+              >
                 {pendingAction.text}
               </Typography>
               <Button
@@ -254,7 +310,7 @@ const AIChat: React.FC<AIChatProps> = ({ employee, device, onClose, compactInput
         </IconButton>
       </Box>
     </Paper>
-  );
-};
+  )
+}
 
-export default AIChat;
+export default AIChat
